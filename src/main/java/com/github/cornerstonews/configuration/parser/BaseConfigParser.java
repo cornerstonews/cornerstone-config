@@ -18,11 +18,15 @@ package com.github.cornerstonews.configuration.parser;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,32 +49,55 @@ import com.github.cornerstonews.configuration.ConfigException;
 public abstract class BaseConfigParser<T> implements ConfigParser<T> {
     private static final Logger log = LogManager.getLogger(BaseConfigParser.class);
 
+    private File filePath;
     private final Class<T> klass;
     private ObjectMapper mapper;
-
-    public BaseConfigParser(Class<T> klass, ObjectMapper objectMapper) {
+  
+    public BaseConfigParser(String path, Class<T> klass, ObjectMapper objectMapper) {
+        this.filePath = path == null ? null : new File(path);
         this.klass = klass;
         this.mapper = objectMapper;
     }
-
+    
     protected abstract String getFormat();
 
-    @Override
-    public T build() throws IOException, ConfigException {
-        return this.build((File) null);
+    public static String getFileExtension(final String filename) {
+        String fName = new File(filename).getName();
+        Optional<String> extensionOptional = Optional.ofNullable(fName)
+          .filter(f -> f.contains("."))
+          .map(f -> f.substring(fName.lastIndexOf(".") + 1));
+        return extensionOptional.orElse(null);
     }
-
+    
+    public static String identifyFileType(final String fileName) {
+        String fileType = null;
+        try {
+            final File file = new File(fileName);
+            fileType = Files.probeContentType(file.toPath());
+        } catch (IOException ioException) {
+            System.out.println("asdf");
+            // Do nothing
+        }
+        return fileType;
+    }
+    
     @Override
     public T build(String path) throws IOException, ConfigException {
-        return this.build(new File(path));
+        if(this.filePath != null && path != null && !Objects.equals(filePath, new File(path))) {
+            throw new ConfigException(path, Arrays.asList("Invalid parser. '" + this.getFormat() + "' can not be used for given path: " + path));
+        }
+        if(this.filePath == null && path != null && isValidFileType(path)) {
+            this.filePath = new File(path);
+        }
+        return this.build();
     }
 
     @Override
-    public T build(File file) throws ConfigException, IOException {
-        final String path = (file == null) ? "default application config" : file.getAbsolutePath();
+    public T build() throws ConfigException, IOException {
+        final String path = (filePath == null) ? "default application config" : filePath.getAbsolutePath();
         try {
             log.info("Loading application configuration from path '{}'", path);
-            final T config = (file == null) ? mapper.readValue("{}", this.klass) : mapper.readValue(file, this.klass);
+            final T config = (filePath == null) ? mapper.readValue("{}", this.klass) : mapper.readValue(filePath, this.klass);
 
             final Set<ConstraintViolation<T>> violations = getValidator().validate(config);
             if (!violations.isEmpty()) {

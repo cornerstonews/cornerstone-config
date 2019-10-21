@@ -16,24 +16,11 @@
  */
 package com.github.cornerstonews.configuration.parser;
 
-import java.io.File;
 import java.io.IOException;
 
 import com.github.cornerstonews.configuration.ConfigException;
 
 public interface ConfigParser<T> {
-
-    /**
-     * Loads, parses, binds, and validates a configuration object from a file.
-     *
-     * @param path the path of the configuration file
-     * @return a validated configuration object
-     * @throws IOException            if there is an error reading the file
-     * @throws ConfigException if there is an error parsing or validating the file
-     */
-    default T build(File path) throws IOException, ConfigException {
-        return build(path.toString());
-    }
 
     /**
      * Loads, parses, binds, and validates a configuration object from a file.
@@ -53,5 +40,13 @@ public interface ConfigParser<T> {
      * @throws ConfigException if there is an error parsing or validating the file
      */
     T build() throws IOException, ConfigException;
+
+    /**
+     * Return true if file at given file is the right format and this parser can parse it,
+     * else return false
+     *
+     * @return true if file can be parsed else false
+     */
+    Boolean isValidFileType(String path);
 
 }

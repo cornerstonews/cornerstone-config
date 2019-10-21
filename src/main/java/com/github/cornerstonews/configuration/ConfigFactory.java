@@ -32,6 +32,7 @@ import javax.naming.NoInitialContextException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.github.cornerstonews.configuration.parser.BaseConfigParser;
 import com.github.cornerstonews.configuration.parser.ConfigParser;
 import com.github.cornerstonews.configuration.parser.JsonConfigParser;
 import com.github.cornerstonews.configuration.parser.YamlConfigParser;
@@ -49,10 +50,11 @@ public final class ConfigFactory {
 
     public final static <T> ConfigParser<T> getParser(String path, Class<T> clazz) {
 
-        ConfigParser<T> configurationParser = new YamlConfigParser<>(clazz);
+        ConfigParser<T> configurationParser = new YamlConfigParser<>(path, clazz);
 
-        if (path != null && path.toLowerCase().endsWith("json")) {
-            configurationParser = new JsonConfigParser<>(clazz);
+        if (path != null && "json".equalsIgnoreCase(BaseConfigParser.getFileExtension(path))
+                && BaseConfigParser.identifyFileType(path).contains("json")) {
+            configurationParser = new JsonConfigParser<>(path, clazz);
         }
 
         return configurationParser;

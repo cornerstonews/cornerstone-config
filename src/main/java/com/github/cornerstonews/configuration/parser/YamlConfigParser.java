@@ -16,18 +16,38 @@
  */
 package com.github.cornerstonews.configuration.parser;
 
+import java.util.Arrays;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 public class YamlConfigParser<T> extends BaseConfigParser<T> {
 
+    private final List<String> validExtension = Arrays.asList("yml", "yaml");
+
     public YamlConfigParser(Class<T> klass) {
-        super(klass, new ObjectMapper(new YAMLFactory()));
+        this(null, klass);
+    }
+
+    public YamlConfigParser(String path, Class<T> klass) {
+        super(path, klass, new ObjectMapper(new YAMLFactory()));
     }
 
     @Override
     protected String getFormat() {
         return YAMLFactory.FORMAT_NAME_YAML;
+    }
+
+    @Override
+    public Boolean isValidFileType(String path) {
+        Boolean isValid = false;
+        if (path != null && validExtension.contains(getFileExtension(path).toLowerCase())
+//                && identifyFileType(path).contains("yml")
+        ) {
+            isValid = true;
+        }
+        return isValid;
     }
 
 }

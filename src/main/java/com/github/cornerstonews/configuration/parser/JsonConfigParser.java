@@ -22,7 +22,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class JsonConfigParser<T> extends BaseConfigParser<T> {
 
     public JsonConfigParser(Class<T> klass) {
-        super(klass, new ObjectMapper(new JsonFactory()));
+        this(null, klass);
+    }
+
+    public JsonConfigParser(String path, Class<T> klass) {
+        super(path, klass, new ObjectMapper(new JsonFactory()));
     }
 
     @Override
@@ -30,4 +34,12 @@ public class JsonConfigParser<T> extends BaseConfigParser<T> {
         return JsonFactory.FORMAT_NAME_JSON;
     }
 
+    @Override
+    public Boolean isValidFileType(String path) {
+        if (path != null && "json".equalsIgnoreCase(getFileExtension(path)) && identifyFileType(path).contains("json")) {
+            return true;
+        }
+
+        return false;
+    }
 }
