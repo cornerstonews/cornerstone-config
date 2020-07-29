@@ -36,6 +36,18 @@ public class ConfigException extends Exception {
      * @param errors
      *            the errors in the path
      */
+    public ConfigException(Collection<String> errors) {
+        this(null, errors);
+    }
+    
+    /**
+     * Creates a new ConfigurationException for the given path with the given errors.
+     *
+     * @param path
+     *            the bad configuration path
+     * @param errors
+     *            the errors in the path
+     */
     public ConfigException(String path, Collection<String> errors) {
         super(formatMessage(path, errors));
         this.errors = errors;
@@ -61,7 +73,7 @@ public class ConfigException extends Exception {
     }
 
     protected static String formatMessage(String file, Collection<String> errors) {
-        final StringBuilder msg = new StringBuilder(file);
+        final StringBuilder msg = new StringBuilder(file == null ? "Configuration" : file);
         msg.append(errors.size() == 1 ? " has an error:" : " has the following errors:").append(NEWLINE);
         for (String error : errors) {
             msg.append("  * ").append(error).append(NEWLINE);

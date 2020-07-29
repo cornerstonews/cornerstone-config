@@ -16,19 +16,12 @@
  */
 package com.github.cornerstonews.configuration.parser;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -40,90 +33,55 @@ import org.hibernate.validator.HibernateValidator;
 
 import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.github.cornerstonews.configuration.ConfigException;
 
-public abstract class BaseConfigParser<T> implements ConfigParser<T> {
+public class BaseConfigParser<T> {
     private static final Logger log = LogManager.getLogger(BaseConfigParser.class);
 
-    private File filePath;
-    private final Class<T> klass;
-    private ObjectMapper mapper;
-  
-    public BaseConfigParser(String path, Class<T> klass, ObjectMapper objectMapper) {
-        this.filePath = path == null ? null : new File(path);
+    protected final Class<T> klass;
+    protected ObjectMapper mapper;
+
+    public BaseConfigParser(Class<T> klass, ObjectMapper objectMapper) {
         this.klass = klass;
         this.mapper = objectMapper;
     }
-    
-    protected abstract String getFormat();
 
-    public static String getFileExtension(final String filename) {
-        String fName = new File(filename).getName();
-        Optional<String> extensionOptional = Optional.ofNullable(fName)
-          .filter(f -> f.contains("."))
-          .map(f -> f.substring(fName.lastIndexOf(".") + 1));
-        return extensionOptional.orElse(null);
-    }
-    
-    public static String identifyFileType(final String fileName) {
-        String fileType = null;
+    public T build() throws ConfigException {
         try {
-            final File file = new File(fileName);
-            fileType = Files.probeContentType(file.toPath());
-        } catch (IOException ioException) {
-            System.out.println("asdf");
-            // Do nothing
-        }
-        return fileType;
-    }
-    
-    @Override
-    public T build(String path) throws IOException, ConfigException {
-        if(this.filePath != null && path != null && !Objects.equals(filePath, new File(path))) {
-            throw new ConfigException(path, Arrays.asList("Invalid parser. '" + this.getFormat() + "' can not be used for given path: " + path));
-        }
-        if(this.filePath == null && path != null && isValidFileType(path)) {
-            this.filePath = new File(path);
-        }
-        return this.build();
-    }
-
-    @Override
-    public T build() throws ConfigException, IOException {
-        final String path = (filePath == null) ? "default application config" : filePath.getAbsolutePath();
-        try {
-            log.info("Loading application configuration from path '{}'", path);
-            final T config = (filePath == null) ? mapper.readValue("{}", this.klass) : mapper.readValue(filePath, this.klass);
-
-            final Set<ConstraintViolation<T>> violations = getValidator().validate(config);
-            if (!violations.isEmpty()) {
-                final Set<String> errors = new HashSet<>(violations.size());
-                for (ConstraintViolation<?> v : violations) {
-                    errors.add(String.format("%s %s", v.getPropertyPath(), v.getMessage()));
-                }
-                throw new ConfigException(path, errors);
-            }
+            log.info("Loading default application configuration");
+            final T config = mapper.readValue("{}", this.klass);
             return config;
-        } catch (UnrecognizedPropertyException e) {
-            final List<String> properties = e.getKnownPropertyIds().stream().map(Object::toString).collect(Collectors.toList());
-            throw new ConfigException(path, formatError("Unrecognized field", null, e.getPath(), e.getLocation(), properties), e);
-        } catch (InvalidFormatException e) {
-            final String sourceType = e.getValue().getClass().getSimpleName();
-            final String targetType = e.getTargetType().getSimpleName();
-            throw new ConfigException(path,
-                    formatError("Incorrect type of value", "is of type: " + sourceType + ", expected: " + targetType, e.getPath(), e.getLocation(), null), e);
-        } catch (JsonMappingException e) {
-            throw new ConfigException(path, formatError("Failed to parse configuration", e.getMessage(), e.getPath(), e.getLocation(), null), e);
         } catch (JsonParseException e) {
-            throw new ConfigException(path, formatError("Malformed " + getFormat(), e.getMessage(), null, e.getLocation(), null), e);
+            throw new ConfigException(null, formatError("Malformed default config", e.getMessage(), null, e.getLocation(), null), e);
+        } catch (JsonProcessingException e) {
+            throw new ConfigException(null, formatError("Failed to parse configuration", e.getMessage(), null, e.getLocation(), null), e);
         }
     }
 
-    private List<String> formatError(String summary, String detail, List<JsonMappingException.Reference> fieldPath, JsonLocation location,
+    public boolean isValid(T config) throws ConfigException {
+        final Set<ConstraintViolation<T>> violations = getValidator().validate(config);
+        if (!violations.isEmpty()) {
+            final Set<String> errors = new HashSet<>(violations.size());
+            for (ConstraintViolation<?> v : violations) {
+                errors.add(String.format("%s %s", v.getPropertyPath(), v.getMessage()));
+            }
+            throw new ConfigException(errors);
+        }
+
+        return true;
+    }
+
+    private Validator getValidator() {
+        return Validation.byProvider(HibernateValidator.class).configure()
+                // If needed add ValueExtractor(s) here for variables that can not be directly
+                // validated
+                .buildValidatorFactory().getValidator();
+    }
+
+    protected List<String> formatError(String summary, String detail, List<JsonMappingException.Reference> fieldPath, JsonLocation location,
             Collection<String> suggestions) {
         final StringBuilder sb = new StringBuilder(summary);
         if (fieldPath != null && !fieldPath.isEmpty()) {
@@ -180,11 +138,5 @@ public abstract class BaseConfigParser<T> implements ConfigParser<T> {
             }
         }
         return sb.toString();
-    }
-
-    private Validator getValidator() {
-        return Validation.byProvider(HibernateValidator.class).configure()
-                // If needed add ValueExtractor(s) here for variables that can not be directly validated
-                .buildValidatorFactory().getValidator();
     }
 }

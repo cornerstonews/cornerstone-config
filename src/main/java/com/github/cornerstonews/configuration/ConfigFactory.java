@@ -32,8 +32,9 @@ import javax.naming.NoInitialContextException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.cornerstonews.configuration.parser.BaseConfigParser;
-import com.github.cornerstonews.configuration.parser.ConfigParser;
+import com.github.cornerstonews.configuration.parser.ConfigFileParser;
 import com.github.cornerstonews.configuration.parser.JsonConfigParser;
 import com.github.cornerstonews.configuration.parser.YamlConfigParser;
 
@@ -44,16 +45,15 @@ public final class ConfigFactory {
     private ConfigFactory() {
     }
 
-    public final static <T> ConfigParser<T> getDefaultParser(Class<T> clazz) throws ConfigException {
-        return getParser(getConfigPath(null), clazz);
+    public final static <T> BaseConfigParser<T> getDefaultParser(Class<T> clazz) throws ConfigException {
+        return new BaseConfigParser<T>(clazz, new ObjectMapper());
     }
 
-    public final static <T> ConfigParser<T> getParser(String path, Class<T> clazz) {
+    public final static <T> ConfigFileParser<T> getParser(String path, Class<T> clazz) {
 
-        ConfigParser<T> configurationParser = new YamlConfigParser<>(path, clazz);
+        ConfigFileParser<T> configurationParser = new YamlConfigParser<>(path, clazz);
 
-        if (path != null && "json".equalsIgnoreCase(BaseConfigParser.getFileExtension(path))
-                && BaseConfigParser.identifyFileType(path).contains("json")) {
+        if (path != null && "json".equalsIgnoreCase(ConfigFileParser.getFileExtension(path)) && ConfigFileParser.identifyFileType(path).contains("json")) {
             configurationParser = new JsonConfigParser<>(path, clazz);
         }
 
@@ -115,8 +115,20 @@ public final class ConfigFactory {
         return path;
     }
 
-    public final static <T> T loadConfig(String path, Class<T> clazz) throws ConfigException, IOException {
-        ConfigParser<T> configurationParser = getParser(path, clazz);
-        return (path == null) ? configurationParser.build() : configurationParser.build(path);
+    public final static <T> T loadConfig(Class<T> clazz) throws ConfigException, IOException {
+        return getDefaultParser(clazz).build();
     }
+
+    public final static <T> T loadConfig(String path, Class<T> clazz) throws ConfigException, IOException {
+        if (path == null) {
+            loadConfig(clazz);
+        }
+
+        return getParser(path, clazz).build(path);
+    }
+
+    public static <T> boolean isValid(T configuration) throws ConfigException {
+        return getDefaultParser(null).isValid(configuration);
+    }
+
 }

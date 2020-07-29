@@ -19,7 +19,7 @@ package com.github.cornerstonews.configuration.parser;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class JsonConfigParser<T> extends BaseConfigParser<T> {
+public class JsonConfigParser<T> extends ConfigFileParser<T> {
 
     public JsonConfigParser(Class<T> klass) {
         this(null, klass);
