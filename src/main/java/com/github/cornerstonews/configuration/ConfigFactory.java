@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Map;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -35,6 +36,7 @@ import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.cornerstonews.configuration.parser.BaseConfigParser;
 import com.github.cornerstonews.configuration.parser.ConfigFileParser;
+import com.github.cornerstonews.configuration.parser.HashMapConfigParser;
 import com.github.cornerstonews.configuration.parser.JsonConfigParser;
 import com.github.cornerstonews.configuration.parser.YamlConfigParser;
 
@@ -121,12 +123,28 @@ public final class ConfigFactory {
 
     public final static <T> T loadConfig(String path, Class<T> clazz) throws ConfigException, IOException {
         if (path == null) {
-            loadConfig(clazz);
+            return loadConfig(clazz);
         }
 
         return getParser(path, clazz).build(path);
     }
 
+    public final static <T> T loadConfig(Map<String, ?> map, Class<T> clazz) throws ConfigException, IOException {
+        if (map.isEmpty()) {
+            return loadConfig(clazz);
+        }
+        
+        return new HashMapConfigParser<T>(clazz).build(map);
+    }
+    
+    public final static <T> T loadConfig(Map<String, ?> map, Class<T> clazz, T instance) throws ConfigException {
+        if (map.isEmpty()) {
+            return instance;
+        }
+        
+        return new HashMapConfigParser<T>(clazz).build(map, instance);
+    }
+    
     public static <T> boolean isValid(T configuration) throws ConfigException {
         return getDefaultParser(null).isValid(configuration);
     }
