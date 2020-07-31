@@ -150,7 +150,7 @@ public final class ConfigFactory {
             return instance;
         }
         
-        return new HashMapConfigParser<T>(clazz).build(map, instance);
+        return new HashMapConfigParser<T>(clazz).merge(map, instance);
     }
     
     public static <T> boolean isValid(T configuration) throws ConfigException {
