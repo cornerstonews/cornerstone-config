@@ -145,6 +145,14 @@ public final class ConfigFactory {
         return new HashMapConfigParser<T>(clazz).build(map, instance);
     }
     
+    public final static <T> T mergeConfig(Map<String, ?> map, Class<T> clazz, T instance) throws ConfigException {
+        if (map.isEmpty()) {
+            return instance;
+        }
+        
+        return new HashMapConfigParser<T>(clazz).build(map, instance);
+    }
+    
     public static <T> boolean isValid(T configuration) throws ConfigException {
         return getDefaultParser(null).isValid(configuration);
     }

@@ -28,7 +28,7 @@ public class HashMapConfigParserTest {
     }
 
     @Test
-    public void updateExistingPOJOWithMapTest() throws ConfigException {
+    public void createNewPojoFromExistingWithMapTest() throws ConfigException {
         Employee existingEmployee = new Employee("Bob", "Operations", 50000, "555-555-5556", new Address("11 Wall Street", "New York", "10118"));
         System.out.println("existingEmployee: " + existingEmployee);
 
@@ -44,6 +44,24 @@ public class HashMapConfigParserTest {
         assertTrue(newEmployee.getAddress().getCity().equals("Chicago"));
     }
 
+
+    @Test
+    public void updateExistingPOJOTest() throws JsonMappingException, JsonProcessingException, ConfigException {
+        Map<String, Object> newEmployeeMap = new HashMap<>(Map.of("name", "John", "dept", "Engineering", "phone", "555-555-555", "address",
+                new HashMap<>(Map.of("street", "233 S Wacker Dr", "city", "Chicago", "zipCode", "60606"))));
+        System.out.println("existingEmployeeMap: " + newEmployeeMap);
+
+        Employee existingEmployee = new Employee("Bob", "Operations", 50000, null, new Address("11 Wall Street", "New York", "10118"));
+        Employee newEmployee = new HashMapConfigParser<Employee>(Employee.class).merge(newEmployeeMap, existingEmployee);
+        System.out.println("newEmployee: " + newEmployee);
+        
+        assertTrue(newEmployee.getName().equals("John"));
+        assertTrue(newEmployee.getAddress().getCity().equals("Chicago"));
+        assertTrue(newEmployee.getPhone().equals("555-555-555"));
+        assertTrue(newEmployee.getSalary() == 50000);
+    }
+    
+    
     @Test
     public void updateExistingMapTest() throws JsonMappingException, JsonProcessingException {
         Map<String, ?> existingEmployeeMap = new HashMap<>(Map.of("name", "Bob", "dept", "Operations", "salary", 50000, "phone", "555-555-556", "address",
