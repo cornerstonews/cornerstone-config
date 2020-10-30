@@ -22,7 +22,7 @@ import java.util.List;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
-public class YamlConfigParser<T> extends BaseConfigParser<T> {
+public class YamlConfigParser<T> extends ConfigFileParser<T> {
 
     private final List<String> validExtension = Arrays.asList("yml", "yaml");
 
