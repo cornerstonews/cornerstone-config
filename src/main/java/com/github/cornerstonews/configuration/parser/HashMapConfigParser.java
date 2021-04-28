@@ -4,6 +4,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.github.cornerstonews.configuration.ConfigException;
@@ -12,8 +13,11 @@ public class HashMapConfigParser<T> extends BaseConfigParser<T> {
 
     private ObjectMapper objectMapper = new ObjectMapper(new JsonFactory());
 
-    public HashMapConfigParser(Class<T> klass) {
+    public HashMapConfigParser(Class<T> klass, boolean failOnUnknown) {
         super(klass, new ObjectMapper());
+        if (failOnUnknown) {
+            this.mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, failOnUnknown);
+        }
     }
 
     public T build(Map<String, ?> map) throws ConfigException {
