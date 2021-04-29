@@ -133,7 +133,7 @@ public final class ConfigFactory {
         return loadConfig(map, clazz, false);
     }
 
-    public final static <T> T loadConfig(Map<String, ?> map, Class<T> clazz, Boolean failOnUnknown) throws ConfigException, IOException {
+    public final static <T> T loadConfig(Map<String, ?> map, Class<T> clazz, boolean failOnUnknown) throws ConfigException, IOException {
         if (map.isEmpty()) {
             return loadConfig(clazz);
         }
@@ -145,7 +145,7 @@ public final class ConfigFactory {
         return loadConfig(map, clazz, instance, false);
     }
 
-    public final static <T> T loadConfig(Map<String, ?> map, Class<T> clazz, T instance, Boolean failOnUnknown) throws ConfigException {
+    public final static <T> T loadConfig(Map<String, ?> map, Class<T> clazz, T instance, boolean failOnUnknown) throws ConfigException {
         if (map.isEmpty()) {
             return instance;
         }
@@ -157,7 +157,7 @@ public final class ConfigFactory {
         return mergeConfig(map, clazz, instance, false);
     }
 
-    public final static <T> T mergeConfig(Map<String, ?> map, Class<T> clazz, T instance, Boolean failOnUnknown) throws ConfigException {
+    public final static <T> T mergeConfig(Map<String, ?> map, Class<T> clazz, T instance, boolean failOnUnknown) throws ConfigException {
         if (map.isEmpty()) {
             return instance;
         }

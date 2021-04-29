@@ -15,9 +15,7 @@ public class HashMapConfigParser<T> extends BaseConfigParser<T> {
 
     public HashMapConfigParser(Class<T> klass, boolean failOnUnknown) {
         super(klass, new ObjectMapper());
-        if (failOnUnknown) {
-            this.mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, failOnUnknown);
-        }
+        this.mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, failOnUnknown);
     }
 
     public T build(Map<String, ?> map) throws ConfigException {
