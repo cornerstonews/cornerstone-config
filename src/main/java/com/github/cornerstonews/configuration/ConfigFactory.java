@@ -130,27 +130,39 @@ public final class ConfigFactory {
     }
 
     public final static <T> T loadConfig(Map<String, ?> map, Class<T> clazz) throws ConfigException, IOException {
+        return loadConfig(map, clazz, false);
+    }
+
+    public final static <T> T loadConfig(Map<String, ?> map, Class<T> clazz, boolean failOnUnknown) throws ConfigException, IOException {
         if (map.isEmpty()) {
             return loadConfig(clazz);
         }
         
-        return new HashMapConfigParser<T>(clazz).build(map);
+        return new HashMapConfigParser<T>(clazz, failOnUnknown).build(map);
     }
-    
+
     public final static <T> T loadConfig(Map<String, ?> map, Class<T> clazz, T instance) throws ConfigException {
-        if (map.isEmpty()) {
-            return instance;
-        }
-        
-        return new HashMapConfigParser<T>(clazz).build(map, instance);
+        return loadConfig(map, clazz, instance, false);
     }
-    
-    public final static <T> T mergeConfig(Map<String, ?> map, Class<T> clazz, T instance) throws ConfigException {
+
+    public final static <T> T loadConfig(Map<String, ?> map, Class<T> clazz, T instance, boolean failOnUnknown) throws ConfigException {
         if (map.isEmpty()) {
             return instance;
         }
         
-        return new HashMapConfigParser<T>(clazz).merge(map, instance);
+        return new HashMapConfigParser<T>(clazz, failOnUnknown).build(map, instance);
+    }
+
+    public final static <T> T mergeConfig(Map<String, ?> map, Class<T> clazz, T instance) throws ConfigException {
+        return mergeConfig(map, clazz, instance, false);
+    }
+
+    public final static <T> T mergeConfig(Map<String, ?> map, Class<T> clazz, T instance, boolean failOnUnknown) throws ConfigException {
+        if (map.isEmpty()) {
+            return instance;
+        }
+        
+        return new HashMapConfigParser<T>(clazz, failOnUnknown).merge(map, instance);
     }
     
     public static <T> boolean isValid(T configuration) throws ConfigException {

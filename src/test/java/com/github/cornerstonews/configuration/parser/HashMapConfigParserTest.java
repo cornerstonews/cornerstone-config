@@ -20,7 +20,7 @@ public class HashMapConfigParserTest {
         Map<String, Object> employeeMap = new HashMap<>(Map.of("name", "John", "dept", "Engineering", "salary", 75000, "phone", "555-555-5555", "address",
                 new HashMap<>(Map.of("street", "11 Wall Street", "city", "New York", "zipCode", "10118"))));
 
-        Employee employee = new HashMapConfigParser<Employee>(Employee.class).build(employeeMap);
+        Employee employee = new HashMapConfigParser<Employee>(Employee.class, false).build(employeeMap);
         System.out.println("Employee: " + employee);
 
         assertTrue(employee.getName().equals("John"));
@@ -37,7 +37,7 @@ public class HashMapConfigParserTest {
 
         Map<String, Object> newEmployeeMap = new HashMap<>(Map.of("name", "John", "dept", "Engineering", "salary", 75000, "phone", "555-555-555", "address",
                 new HashMap<>(Map.of("street", "233 S Wacker Dr", "city", "Chicago", "zipCode", "60606"))));
-        Employee newEmployee = new HashMapConfigParser<Employee>(Employee.class).build(newEmployeeMap, existingEmployee);
+        Employee newEmployee = new HashMapConfigParser<Employee>(Employee.class, false).build(newEmployeeMap, existingEmployee);
         System.out.println("newEmployee: " + newEmployee);
 
         assertTrue(newEmployee.getName().equals("John"));
@@ -52,7 +52,7 @@ public class HashMapConfigParserTest {
         System.out.println("existingEmployeeMap: " + newEmployeeMap);
 
         Employee existingEmployee = new Employee("Bob", "Operations", 50000, null, new Address("11 Wall Street", "New York", "10118"));
-        Employee newEmployee = new HashMapConfigParser<Employee>(Employee.class).merge(newEmployeeMap, existingEmployee);
+        Employee newEmployee = new HashMapConfigParser<Employee>(Employee.class, false).merge(newEmployeeMap, existingEmployee);
         System.out.println("newEmployee: " + newEmployee);
         
         assertTrue(newEmployee.getName().equals("John"));
